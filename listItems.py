@@ -2,11 +2,13 @@ import tkinter as tk
 from tkinter import messagebox
 import os
 import glob
+import time
+import pyautogui
 from playwright.sync_api import sync_playwright
 
 
 def run_listing(title, starting_price, buy_price, description, condition,
-                 condition_description, img_count):
+                 condition_description, img_count, screen_width, screen_height):
     """condition: True = New, False = Used"""
 
     downloads = "C:/Users/Finle/Downloads"
@@ -21,14 +23,20 @@ def run_listing(title, starting_price, buy_price, description, condition,
             headless=False
         )
         page = browser.new_page()
+
+        time.sleep(1)  # let the window fully open before snapping
+        pyautogui.hotkey('win', 'left')
+
         page.goto(
             "https://www.ebay.co.uk/sl/prelist/identify?sr=sug&title=Test&isUid=false"
             "&sssr=shstart&radixTrackingId=b9232581-4ce7-4e13-8442-7f593c82cca9"
         )
 
         page.click("input[placeholder='Enter a category value']")
-        page.wait_for_selector("text=Continue without match")
-        page.click("text=Continue without match")
+        input("Select the category manually in the browser, then press enter here to continue...")
+
+        if page.locator("text=Continue without match").is_visible():
+            page.click("text=Continue without match")
 
         if condition:
             page.check("input[value='1000']")
@@ -77,9 +85,12 @@ def on_submit():
         messagebox.showerror("Invalid input", "Title is required.")
         return
 
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
     root.destroy()  # close the GUI, then run the automation
     run_listing(title, starting_price, buy_price, description, condition,
-                condition_description, img_count)
+                condition_description, img_count, screen_width, screen_height)
 
 
 root = tk.Tk()
